@@ -1,0 +1,285 @@
+import '/auth/custom_auth/auth_util.dart';
+import '/backend/api_requests/api_calls.dart';
+import '/components/assessments_data_table_widget.dart';
+import '/components/dashboard_widget/dashboard_widget_widget.dart';
+import '/components/h1_heading_group/h1_heading_group_widget.dart';
+import '/components/h2_heading_group/h2_heading_group_widget.dart';
+import '/components/secondary_button/secondary_button_widget.dart';
+import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_widgets.dart';
+import 'package:aligned_tooltip/aligned_tooltip.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'admin_right_panel_dashboard_model.dart';
+export 'admin_right_panel_dashboard_model.dart';
+
+class AdminRightPanelDashboardWidget extends StatefulWidget {
+  const AdminRightPanelDashboardWidget({
+    super.key,
+    required this.addAssessmentButton,
+  });
+
+  final Future Function()? addAssessmentButton;
+
+  @override
+  State<AdminRightPanelDashboardWidget> createState() =>
+      _AdminRightPanelDashboardWidgetState();
+}
+
+class _AdminRightPanelDashboardWidgetState
+    extends State<AdminRightPanelDashboardWidget> {
+  late AdminRightPanelDashboardModel _model;
+
+  @override
+  void setState(VoidCallback callback) {
+    super.setState(callback);
+    _model.onUpdate();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _model = createModel(context, () => AdminRightPanelDashboardModel());
+
+    // On component load action.
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _model.getAllAssessmentsAPI =
+          await SpiralReportsAdminAPIGroup.getAllAssessmentsAdminCall.call(
+        accessToken: currentAuthenticationToken,
+      );
+
+      if ((_model.getAllAssessmentsAPI?.succeeded ?? true)) {
+        _model.allAssessmentsList =
+            SpiralReportsAdminAPIGroup.getAllAssessmentsAdminCall
+                .assessmentList(
+                  (_model.getAllAssessmentsAPI?.jsonBody ?? ''),
+                )!
+                .toList()
+                .cast<dynamic>();
+        setState(() {});
+      } else {
+        await showDialog(
+          context: context,
+          builder: (alertDialogContext) {
+            return AlertDialog(
+              title: Text('Failed To Fetch Assessments'),
+              content: Text(
+                  'Failed to fetch assessments, Please log out and login again'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(alertDialogContext),
+                  child: Text('Ok'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _model.maybeDispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<FFAppState>();
+
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              wrapWithModel(
+                model: _model.h1HeadingGroupModel,
+                updateCallback: () => setState(() {}),
+                child: H1HeadingGroupWidget(
+                  heading: 'Welcome Back, ${FFAppState().user.firstName}',
+                  subText:
+                      'Track, manage and forecast your cyber security assessments with SpiralReports',
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  AlignedTooltip(
+                    content: Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: Text(
+                        'Click to add credits',
+                        style: FlutterFlowTheme.of(context).bodyLarge.override(
+                              fontFamily: 'Inter',
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                    ),
+                    offset: 4.0,
+                    preferredDirection: AxisDirection.left,
+                    borderRadius: BorderRadius.circular(8.0),
+                    backgroundColor:
+                        FlutterFlowTheme.of(context).secondaryBackground,
+                    elevation: 4.0,
+                    tailBaseWidth: 24.0,
+                    tailLength: 12.0,
+                    waitDuration: Duration(milliseconds: 100),
+                    showDuration: Duration(milliseconds: 1500),
+                    triggerMode: TooltipTriggerMode.tap,
+                    child: Visibility(
+                      visible: false,
+                      child: wrapWithModel(
+                        model: _model.secondaryButtonModel,
+                        updateCallback: () => setState(() {}),
+                        child: SecondaryButtonWidget(
+                          text:
+                              '${FFAppState().user.credits.toString()} Credits Left',
+                          icon: Icon(
+                            Icons.auto_awesome_rounded,
+                            color: FlutterFlowTheme.of(context).primary,
+                            size: 24.0,
+                          ),
+                          action: () async {
+                            context.pushNamed(
+                              'settings',
+                              queryParameters: {
+                                'pageIndex': serializeParam(
+                                  2,
+                                  ParamType.int,
+                                ),
+                              }.withoutNulls,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  FFButtonWidget(
+                    onPressed: () async {
+                      await widget.addAssessmentButton?.call();
+                    },
+                    text: 'Add New Assessment',
+                    icon: Icon(
+                      Icons.add_rounded,
+                      size: 24.0,
+                    ),
+                    options: FFButtonOptions(
+                      height: 48.0,
+                      padding:
+                          EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                      iconPadding:
+                          EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      color: FlutterFlowTheme.of(context).primary,
+                      textStyle:
+                          FlutterFlowTheme.of(context).titleSmall.override(
+                                fontFamily: 'Inter',
+                                color: FlutterFlowTheme.of(context)
+                                    .secondaryBackground,
+                                letterSpacing: 0.0,
+                              ),
+                      elevation: 0.0,
+                      borderSide: BorderSide(
+                        color: Color(0xFF1150F5),
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                ].divide(SizedBox(width: 12.0)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 24.0, 0.0, 0.0),
+            child: Wrap(
+              spacing: 16.0,
+              runSpacing: 16.0,
+              alignment: WrapAlignment.start,
+              crossAxisAlignment: WrapCrossAlignment.start,
+              direction: Axis.horizontal,
+              runAlignment: WrapAlignment.start,
+              verticalDirection: VerticalDirection.down,
+              clipBehavior: Clip.none,
+              children: [
+                wrapWithModel(
+                  model: _model.dashboardWidgetModel1,
+                  updateCallback: () => setState(() {}),
+                  child: DashboardWidgetWidget(
+                    title: 'Total Assessments',
+                    statCount: formatNumber(
+                      SpiralReportsAdminAPIGroup.getAllAssessmentsAdminCall
+                          .assessmentList(
+                            (_model.getAllAssessmentsAPI?.jsonBody ?? ''),
+                          )!
+                          .length,
+                      formatType: FormatType.decimal,
+                      decimalType: DecimalType.automatic,
+                    ),
+                    primarySubText: '40%',
+                    secondarySubText: 'up from last month',
+                  ),
+                ),
+                wrapWithModel(
+                  model: _model.dashboardWidgetModel2,
+                  updateCallback: () => setState(() {}),
+                  child: DashboardWidgetWidget(
+                    title: 'Draft Assessments',
+                    statCount: '21',
+                    primarySubText: '55%',
+                    secondarySubText: 'up from last month',
+                  ),
+                ),
+                wrapWithModel(
+                  model: _model.dashboardWidgetModel3,
+                  updateCallback: () => setState(() {}),
+                  child: DashboardWidgetWidget(
+                    title: 'Total Reports',
+                    statCount: '99',
+                    primarySubText: '12%',
+                    secondarySubText: 'up from last month',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(0.0, 18.0, 0.0, 0.0),
+            child: wrapWithModel(
+              model: _model.h2HeadingGroupModel,
+              updateCallback: () => setState(() {}),
+              child: H2HeadingGroupWidget(
+                heading: 'Assessments',
+                subText: 'All your assessments in one place',
+              ),
+            ),
+          ),
+          Expanded(
+            child: wrapWithModel(
+              model: _model.assessmentsDataTableModel,
+              updateCallback: () => setState(() {}),
+              child: AssessmentsDataTableWidget(
+                assessmentList: _model.allAssessmentsList,
+                deleteAction: (itemID) async {},
+              ),
+            ),
+          ),
+        ]
+            .divide(SizedBox(height: 16.0))
+            .addToStart(SizedBox(height: 36.0))
+            .addToEnd(SizedBox(height: 24.0)),
+      ),
+    );
+  }
+}
